@@ -1,0 +1,38 @@
+#To build nginx docker container 
+# docker build -t nginx-tlsv1.2 ./requirements/nginx/
+
+# To run nginx docker container 
+# docker run -p 443:443 nginx-tlsv1.2 
+
+# To build wordpress and php 
+# docker build -t mywordpress ./requirements/wordpress
+
+# To run wordpress 
+# docker run -p 9000:9000 -v $(pwd)/html:/var/www/html mywordpress
+
+# To build maria db 
+# docker build -t mymariadb .
+
+# To run Maria db 
+# docker run -p 3306:3306 -v $(pwd)/data:/var/lib/mysql mymariadb
+
+# To create a volume that contains Wordpress database we use -v option when running the container 
+# docker run -p 3306:3306 -v $(pwd)/database:/var/lib/mysql mymariadb
+# mount will provide more advanced options 
+# docker run -p 3306:3306 --mount type=bind,source=$(pwd)/database,target=/var/lib/mysql mymariadb
+
+# To create a volume for my wordpress website files 
+# docker run -p 80:80 -v $(pwd)/wordpress:/var/www/html wordpress
+
+
+# To create a Docker network and to run the containers on it 
+# docker create network create mynetwork
+
+# Run the MariaDB container
+# docker run --name mariadb -p 3306:3306 -v $(pwd)/mariadb:/var/lib/mysql --network mynetwork mymariadb
+
+# Run the NGINX container
+# docker run --name nginx -p 80:80 -v $(pwd)/nginx:/etc/nginx/conf.d --network mynetwork nginx
+
+# Run the WordPress-PHP container
+# docker run --name wordpress -v $(pwd)/wordpress:/var/www/html --network mynetwork wordpress
