@@ -1,38 +1,89 @@
-#To build nginx docker container 
-# docker build -t nginx-tlsv1.2 ./requirements/nginx/
+version: '3.0'
 
-# To run nginx docker container 
-# docker run -p 443:443 nginx-tlsv1.2 
+#Containers by Docker Compose 
 
-# To build wordpress and php 
-# docker build -t mywordpress ./requirements/wordpress
+services:
+  # MariaDb Container with service 
+  mariadb:
+    #Dockerfile location from current docker-compose.yml
+    build: ./requirements/mariadb 
+    #Same name for service and container 
+    container_name: mariadb
+    # Environment Variables
+    environment:
+      - INSTALL=${INSTALL}
+      - MARIADB_HOST_NAME=${MARIADB_HOST_NAME}
+      - MARIADB_HOST_V4=${MARIADB_HOST_V4}
+      - MARIADB_HOST_V6=${MARIADB_HOST_V6}
+      - MARIADB_DB=${MARIADB_DB}
+      - MARIADB_USER=${MARIADB_USER}
+      - MARIADB_PWD=${MARIADB_PWD}
+      - MARIADB_ADMIN_USER=${MARIADB_ADMIN_USER}
+      - MARIADB_ADMIN_PWD=${MARIADB_ADMIN_PWD}
+    
+    image:  mariadb
+    #Network from generated 
+    networks: 
+      - inception
+    #Restart policy 
+    restart: always
+    #Volume to be Independent of Container 
+    volumes: 
+      - volume-mariadb:/var/lib/mysql
+  
+  # Nginx container with service 
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    depends_on: 
+      - wordpress
+    image: nginx
+    networks: 
+      - inception
+    ports: 
+      - 443:443 
+    restart: always
+    volumes:
+      - volume-wordpress:/var/www/wordpress
+  
+  # Wordpress container with service
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    depends_on:
+      - mariadb
+    image: wordpress
+    networks:
+      - inception
+    restart: always
+    volumes:
+      - volume-wordpress:/var/www/wordpress
+    
+  # Netword Bridge
+  networks:
+    
+    inception:
+      driver: bridge
 
-# To run wordpress 
-# docker run -p 9000:9000 -v $(pwd)/html:/var/www/html mywordpress
+  # Volumes from Host Mounted Directory for Serviced Containers 
+  volumes:
+    # mariadb volume
+    volume-mariadb:
+      # Driver selection among Local, Volume ( docker volume ) , Temporary File System (tmpfs)
+      driver: local
+      # Driver options 
+      driver_opts: 
+        # Bind Path
+        device: ~/${USER}/data/mariadb
+        # Mount Option (Regerence from Mount Command Manual)
+        o: "bind"
+        # No Fs Type due to binding option
+        type: none
 
-# To build maria db 
-# docker build -t mymariadb .
-
-# To run Maria db 
-# docker run -p 3306:3306 -v $(pwd)/data:/var/lib/mysql mymariadb
-
-# To create a volume that contains Wordpress database we use -v option when running the container 
-# docker run -p 3306:3306 -v $(pwd)/database:/var/lib/mysql mymariadb
-# mount will provide more advanced options 
-# docker run -p 3306:3306 --mount type=bind,source=$(pwd)/database,target=/var/lib/mysql mymariadb
-
-# To create a volume for my wordpress website files 
-# docker run -p 80:80 -v $(pwd)/wordpress:/var/www/html wordpress
-
-
-# To create a Docker network and to run the containers on it 
-# docker create network create mynetwork
-
-# Run the MariaDB container
-# docker run --name mariadb -p 3306:3306 -v $(pwd)/mariadb:/var/lib/mysql --network mynetwork mymariadb
-
-# Run the NGINX container
-# docker run --name nginx -p 80:80 -v $(pwd)/nginx:/etc/nginx/conf.d --network mynetwork nginx
-
-# Run the WordPress-PHP container
-# docker run --name wordpress -v $(pwd)/wordpress:/var/www/html --network mynetwork wordpress
+    # Volume for Wordpress
+    volume-wordpress: 
+      driver: local
+      driver_opts: 
+        device: ~/${USER}/data/wordpress
+        o: "bind"
+        type: none
