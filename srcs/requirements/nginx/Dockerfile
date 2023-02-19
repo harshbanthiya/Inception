@@ -2,18 +2,26 @@
 
 FROM apline:3.14
 
-# # Install NGINX and OpenSSL packages 
-# RUN apk update && apk add nginx openssl 
+# Package Installation 
+RUN     apk update && \
+        apk add nginx openssl && \
+        wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64 && \
+        chmod +x /usr/bin/dumb-init && \
+        mkdir -p /run/nginx /var/www/wordpress /etc/nginx/tls && \
+        openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
+            -out /etc/nginx/tls/hbanthiy.42.fr.crt \
+            -keyout /etc/nginx/tls/hbanthiy.42.fr.key \
+            -subj "/C=CA/L=Quebec/O=42/OU=42Quebec/CN=hbanthiy.42.fr"
 
-# # Copy the Nginx configuration file to the image 
-# COPY ./conf/nginx.conf /etc/nginx/nginx/conf
+# Copy Files 
+COPY    conf/nginx.conf /etc/nginx/http.d/default.conf
 
-# # Generate a self-signed SSL certificate and key
-# RUN openssl req -x509 -newkey rsa:2048 -keyout /etc/ssl/certs/nginx.key -out /etc/ssl/certs/nginx.crt \
-#     -days 365 -nodes -subj "/CN=localhost"
+# Symbolic Links to STDOUT and STDERR to log files 
+RUN     ln -sf /dev/stdout /var/log/nginx/access.log && \
+        ln -sf /dev/strerr /var/log/nginx/error.log
 
-# # Expose port 443 for ecrypted connections 
-# EXPOSE 443
+# Handle Every Signal Correctly by Dumb Init to PID 1 
+ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]
 
-# # Define the command to run when the container starts 
-# CMD ["nginx", "-g", "daemon off;"]
+# Define the command to run when the container starts 
+CMD ["nginx", "-g", "daemon off;"]

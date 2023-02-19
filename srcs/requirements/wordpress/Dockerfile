@@ -1,21 +1,28 @@
 # Using Alpine 3.14
-FROM alpine:3.14
+FROM    alpine:3.14
 
-# # Install PHP and PHP-FPM
-# RUN apk add --update php7 php7-FPM
+#Package Installation 
+RUN     apk update && \
+        apk add curl mariadb-client redis php7 php7-phar php7-json php7-curl php7-fpm php7-mysqli php7-iconv && \
+        wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64 && \
+        chmod +x /usr/bin/dumb-init && \
+        mkdir -p /var/www/wordpress /usr/local/bin/wp /run/php && \
+        curl https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar --output /usr/bin/qp --silent && \
+        chmod +x /usr/bin/wp     
 
-# # Install necessary PHP extensions for Wordpress
-# RUN apk add --update php7-mysqli php7-gd php7-opcache php7-curl
+#Copy Files 
+COPY    conf/www.conf /etc/php7/php-fpm.d/www.conf
+COPY    conf/wp-config.php /wp-config.php
+COPY    tools/script.sh /script.sh
 
-# # Download and extract the latest version of Wordpress
-# RUN apk add --update wget && \
-#     wget https://wordpress.org/latest.tar.gz && \
-#     tar xvf latest.tar.gz && \
-#     rm latest.tar.gz && \
-#     mv wordpress /var/www/html/
+# Permission Control 
+RUN     chmod +x /script.sh
 
-# # Configure PHP-FPM
-# COPY ./conf/php-fpm.conf /etc/php7/php-fpm.d/www.conf 
+# Expose Port 
+EXPOSE  9000
 
-# # Define the command to run when the container starts 
-# CMD ["php-fpm7", "-F"]
+# Handle Every Signal Correctly by Dumb Init to PID 1
+ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]
+
+# Command to Execute by Entry point 
+CMD [ "sh", "-c", "/script.sh" ]
