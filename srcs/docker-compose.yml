@@ -6,7 +6,7 @@ services:
   # MariaDb Container with service 
   mariadb:
     #Dockerfile location from current docker-compose.yml
-    build: ./requirements/mariadb 
+    build: ./requirements/mariadb/ 
     #Same name for service and container 
     container_name: mariadb
     # Environment Variables
@@ -31,7 +31,7 @@ services:
   
   # Nginx container with service 
   nginx:
-    build: ./requirements/nginx
+    build: ./requirements/nginx/
     container_name: nginx
     depends_on: 
       - wordpress
@@ -72,7 +72,6 @@ services:
     
   # Netword Bridge
   networks:
-    
     inception:
       driver: bridge
 
