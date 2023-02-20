@@ -1,5 +1,5 @@
-# Using Alpine 3.14
-FROM    alpine:3.14
+# Base Image (Currently Most Stable Version 3.13)
+FROM        alpine:3.13
 
 # Package Installation
 RUN         apk update && \

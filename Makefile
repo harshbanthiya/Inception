@@ -4,7 +4,7 @@ NAME	= inception
 all	: $(NAME)
 
 $(NAME)	:
-	sudo mkdir -p ${HOME}/data/wordpress ${HOME}/data/mariadb
+	sudo mkdir -p ${HOME}/data/wordpress ${HOME}/data/mariadb ${HOME}/data/site ${HOME}/data/monitor
 ifeq ("$(wildcard .setup)", "")
 	sudo chmod 777 /etc/hosts
 	sudo echo "127.0.0.1 hbanthiy.42.fr" >> /etc/hosts
