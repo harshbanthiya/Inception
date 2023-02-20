@@ -14,15 +14,15 @@ RUN     apk update && \
         mariadb-install-db --datadir=/var/lib/mysql --auth-root-authentication-method=normal && \
         chown -R mysql:mysql /var/lib/mysql /run/mysqld
 
-# Copy Files 
-COPY    conf/query.sql /query.sql
-COPY    tools/script.sh /script.sh
+# Copy Files
+COPY    conf/query.sql /tmp/query.sql
+COPY    tools/script.sh /tmp/script.sh
 
-# Permission Control 
+# Permission Control
 RUN     chmod +x /tmp/script.sh
 
 # Handle Every Signal Correctly by Dumb Init to PID 1
-ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]
+ENTRYPOINT  [ "/usr/bin/dumb-init", "--" ]
 
-# Define the command to run when the container starts
-CMD ["sh", "-c", "/script.sh"]
+# Command to Execute by Entrypoint
+CMD         [ "sh", "-c", "/tmp/script.sh" ]
