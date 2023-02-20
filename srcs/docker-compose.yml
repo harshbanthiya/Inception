@@ -122,18 +122,14 @@ services:
       - MARIADB_USER=${MARIADB_USER}
       - MARIADB_PWD=${MARIADB_PWD}
       - MARIADB_DB=${MARIADB_DB}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_CONNECTION_TIMEOUT_SECONDS=${REDIS_CONNECTION_TIMEOUT_SECONDS}
-      - REDIS_READ_TIMEOUT_SECONDS=${REDIS_READ_TIMEOUT_SECONDS}
-      - REDIS_DB_INDEX=${REDIS_DB_INDEX}
+    
     # Image Name from Dockerfile
     image: wordpress
     # Network from Generated One with Docker Compose
     networks:
       - network-mariadb
       - network-nginx
-      - network-redis
+
     # Restart Policy for Keeping Service Active regardless of Any Condition
     restart: always
     # Volume to Be Independent of Container
