@@ -1,81 +1,112 @@
 version: '3.0'
 
-
-# Netword Bridge
+# Network Bridge for Orchestrated Containers
 networks:
-  inception:
+  # Network Name for Services Using MariaDB
+  network-mariadb:
+    # Network Driver among Bridge, Host, None (Containers should be able to communicate)
     driver: bridge
+    # Network Name (Not to Make srcs Prefix)
+    name: network-mariadb
+  network-nginx:
+    # Network Driver among Bridge, Host, None (Containers should be able to communicate)
+    driver: bridge
+    # Network Name (Not to Make srcs Prefix)
+    name: network-nginx
 
-# Volumes from Host Mounted Directory for Serviced Containers 
+
+# Volumes from Host Mounted Directory for Serviced Containers
 volumes:
-  # mariadb volume
+  # Volume for MariaDB
   volume-mariadb:
-    # Driver selection among Local, Volume ( docker volume ) , Temporary File System (tmpfs)
+    # Driver Selection among Local, Volume (Docker Volume), Temporary File System (tmpfs)
     driver: local
-    # Driver options 
-    driver_opts: 
-    # Bind Path
-      device: ~/data/mariadb
-    # Mount Option (Regerence from Mount Command Manual)
-      o: "bind"
-    # No Fs Type due to binding option
-      type: none
+    # Driver Options for the Selection
+    driver_opts:
+      # Binding Path
+      device: ${VOLPATH}/mariadb
+      # Mount Option (Reference from mount Command Manual)
+      o: bind
+      # Volume Type
+      type: volume
+    # Volume Name (Not to Make srcs Prefix)
+    name: volume-mariadb
 
-  # Volume for Wordpress
-  volume-wordpress: 
+  # Volume for WordPress
+  volume-wordpress:
+    # Driver Selection among Local, Volume (Docker Volume), Temporary File System (tmpfs)
     driver: local
-    driver_opts: 
-      device: ~/data/wordpress
-      o: "bind"
-      type: none
+    # Driver Options for the Selection
+    driver_opts:
+      # Binding Path
+      device: ${VOLPATH}/wordpress
+      # Mount Option (Reference from mount Command Manual)
+      o: bind
+      # Volume Type
+      type: volume
+    # Volume Name (Not to Make srcs Prefix)
+    name: volume-wordpress
+
 #Containers by Docker Compose 
 
 services:
-  # MariaDb Container with service 
+  # MariaDB Container with Service
   mariadb:
-    #Dockerfile location from current docker-compose.yml
-    build: ./requirements/mariadb/ 
-    #Same name for service and container 
+    # Dockerfile Location from Current docker-compose.yml
+    build: ./requirements/mariadb/
+    # Container Name as Same as Service Name
     container_name: mariadb
     # Environment Variables
     environment:
-      - INSTALL=${INSTALL}
-      - MARIADB_HOST=${MARIADB_HOST}
+      - HOST_NAME=${HOST_NAME}
+      - HOST_IPV4=${HOST_IPV4}
+      - HOST_IPV6=${HOST_IPV6}
       - MARIADB_DB=${MARIADB_DB}
       - MARIADB_USER=${MARIADB_USER}
       - MARIADB_PWD=${MARIADB_PWD}
       - MARIADB_ADMIN_USER=${MARIADB_ADMIN_USER}
       - MARIADB_ADMIN_PWD=${MARIADB_ADMIN_PWD}
-    
-    image:  mariadb
-    #Network from generated 
-    networks: 
-      - inception
-    #Restart policy 
+    # Image Name from Dockerfile
+    image: mariadb
+    # Network from Generated One with Docker Compose
+    networks:
+      - network-mariadb
+    # Restart Policy for Keeping Service Active regardless of Any Condition
     restart: always
-    #Volume to be Independent of Container 
-    volumes: 
+    # Volume to Be Independent of Container
+    volumes:
       - volume-mariadb:/var/lib/mysql
   
-  # Nginx container with service 
+   # Nginx Container with Service
   nginx:
+    # Dockerfile Location from Current docker-compose.yml
     build: ./requirements/nginx/
+    # Container Name as Same as Service Name
     container_name: nginx
-    depends_on: 
+    # Dependency of Service
+    depends_on:
       - wordpress
+    # Image Name from Dockerfile
     image: nginx
-    networks: 
-      - inception
-    ports: 
-      - 443:443 
+    # Network from Generated One with Docker Compose
+    networks:
+      - network-nginx
+    # Port Forwarding to the Host OS
+    ports:
+      - '443:443'
+    # Restart Policy for Keeping Service Active regardless of Any Condition
     restart: always
+    # Volume to Be Independent of Container
     volumes:
       - volume-wordpress:/var/www/wordpress
   
-  # Wordpress container with service
+  # WordPress Container with Service
   wordpress:
+    # Dockerfile Location from Current docker-compose.yml
     build: ./requirements/wordpress/
+    # Container Name as Same as Service Name
     container_name: wordpress
+    # Dependency of Service
     depends_on:
       - mariadb
     environment:
@@ -91,9 +122,20 @@ services:
       - MARIADB_USER=${MARIADB_USER}
       - MARIADB_PWD=${MARIADB_PWD}
       - MARIADB_DB=${MARIADB_DB}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_CONNECTION_TIMEOUT_SECONDS=${REDIS_CONNECTION_TIMEOUT_SECONDS}
+      - REDIS_READ_TIMEOUT_SECONDS=${REDIS_READ_TIMEOUT_SECONDS}
+      - REDIS_DB_INDEX=${REDIS_DB_INDEX}
+    # Image Name from Dockerfile
     image: wordpress
+    # Network from Generated One with Docker Compose
     networks:
-      - inception
+      - network-mariadb
+      - network-nginx
+      - network-redis
+    # Restart Policy for Keeping Service Active regardless of Any Condition
     restart: always
+    # Volume to Be Independent of Container
     volumes:
       - volume-wordpress:/var/www/wordpress

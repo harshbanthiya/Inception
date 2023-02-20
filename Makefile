@@ -1,33 +1,40 @@
-NAME		=	inception
+NAME	= inception
 
 .PHONY	: all
-all			: $(NAME)
+all	: $(NAME)
 
 $(NAME)	:
-					sed -i "" 's/INSTALL=0/INSTALL=1/g' srcs/.env
-					mkdir -p ~/data/wordpress ~/data/mariadb
-					docker-compose -f srcs/docker-compose.yml up --force-recreate --build -d
+	sudo mkdir -p ${HOME}/data/wordpress ${HOME}/data/mariadb
+ifeq ("$(wildcard .setup)", "")
+	sudo chmod 777 /etc/hosts
+	sudo echo "127.0.0.1 hbanthiy.42.fr" >> /etc/hosts
+	touch .setup
+endif
+	sudo docker-compose -f srcs/docker-compose.yml up --force-recreate --build -d
 
 .PHONY	: clean
-clean		:
-					sed -i "" 's/INSTALL=1/INSTALL=0/g' srcs/.env
-					docker-compose -f srcs/docker-compose.yml down -v --rmi all --remove-orphans
+clean	:
+	sudo docker-compose -f srcs/docker-compose.yml down -v --rmi all --remove-orphans
 
 .PHONY	: fclean
-fclean	:	clean
-					rm -rf ~/data
-					docker system prune --volumes --all --force
-					docker network prune --force
-					docker volume prune --force
-					docker image prune --force
+fclean	: clean
+	sudo rm -rf ${HOME}/data
+	sudo rm -f .setup
+	sudo docker system prune --volumes --all --force
+	sudo docker network prune --force
+	sudo docker volume prune --force
 
 .PHONY	: re
-re			: fclean  all
+re	: fclean all
+
+.PHONY	: restart
+restart	:
+	sudo docker-compose -f srcs/docker-compose.yml restart
 
 .PHONY	: log
-log			:
-					docker-compose -f srcs/docker-compose.yml logs
+log	:
+	sudo docker-compose -f srcs/docker-compose.yml logs -f
 
 .PHONY	: ps
-ps			:
-					docker-compose -f srcs/docker-compose.yml ps
+ps	:
+	sudo docker-compose -f srcs/docker-compose.yml ps

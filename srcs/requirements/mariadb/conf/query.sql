@@ -3,7 +3,7 @@ DELETE FROM
     mysql.user
 WHERE
     User = '$MARIADB_ADMIN_USER'
-    AND Host != '$MARIADB_HOST' ;
+    AND Host NOT IN ('$HOST_NAME', '$HOST_IPV4', '$HOST_IPV6');
 
 -- Set password of Root User on Daemon 
 SET

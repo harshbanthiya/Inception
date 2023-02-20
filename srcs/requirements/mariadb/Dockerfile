@@ -11,19 +11,15 @@ RUN     apk update && \
         wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64 && \
         chmod +x /usr/bin/dumb-init && \
         mkdir -p /run/mysqld /var/lib/mysql && \
-        chown mysql /var/lib/mysql && \
-        rm /etc/my.cnf.d/mariadb-server.cnf
+        mariadb-install-db --datadir=/var/lib/mysql --auth-root-authentication-method=normal && \
+        chown -R mysql:mysql /var/lib/mysql /run/mysqld
 
 # Copy Files 
-COPY    conf/mariadb-server.cnf /etc/my.cnf.d/mariadb-server.cnf
-COPY    tools/query.sql /query.sql
+COPY    conf/query.sql /query.sql
 COPY    tools/script.sh /script.sh
 
 # Permission Control 
-RUN     chmod +x /script.sh
-
-# Expose Port 
-EXPOSE  3306
+RUN     chmod +x /tmp/script.sh
 
 # Handle Every Signal Correctly by Dumb Init to PID 1
 ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]
