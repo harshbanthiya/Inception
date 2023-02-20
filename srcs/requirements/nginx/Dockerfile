@@ -1,6 +1,6 @@
 # Use existing Alpine Linux Image as the base image
 
-FROM apline:3.14
+FROM alpine:3.14
 
 # Package Installation 
 RUN     apk update && \

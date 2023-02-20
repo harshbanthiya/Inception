@@ -1,5 +1,33 @@
 version: '3.0'
 
+
+# Netword Bridge
+networks:
+  inception:
+    driver: bridge
+
+# Volumes from Host Mounted Directory for Serviced Containers 
+volumes:
+  # mariadb volume
+  volume-mariadb:
+    # Driver selection among Local, Volume ( docker volume ) , Temporary File System (tmpfs)
+    driver: local
+    # Driver options 
+    driver_opts: 
+    # Bind Path
+      device: ~/data/mariadb
+    # Mount Option (Regerence from Mount Command Manual)
+      o: "bind"
+    # No Fs Type due to binding option
+      type: none
+
+  # Volume for Wordpress
+  volume-wordpress: 
+    driver: local
+    driver_opts: 
+      device: ~/data/wordpress
+      o: "bind"
+      type: none
 #Containers by Docker Compose 
 
 services:
@@ -70,31 +98,4 @@ services:
     volumes:
       - volume-wordpress:/var/www/wordpress
     
-  # Netword Bridge
-  networks:
-    
-    inception:
-      driver: bridge
-
-  # Volumes from Host Mounted Directory for Serviced Containers 
-  volumes:
-    # mariadb volume
-    volume-mariadb:
-      # Driver selection among Local, Volume ( docker volume ) , Temporary File System (tmpfs)
-      driver: local
-      # Driver options 
-      driver_opts: 
-        # Bind Path
-        device: ~/data/mariadb
-        # Mount Option (Regerence from Mount Command Manual)
-        o: "bind"
-        # No Fs Type due to binding option
-        type: none
-
-    # Volume for Wordpress
-    volume-wordpress: 
-      driver: local
-      driver_opts: 
-        device: ~/data/wordpress
-        o: "bind"
-        type: none
+  
